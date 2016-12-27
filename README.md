@@ -19,30 +19,16 @@ export CLASSPATH = $MAHOUT_HOME/lib:$CLASSPATH
 
 To get started with different implementations of recommendation engines in R, Python,
 Spark, Neo4j, Mahout we need the following software:
-Chapter
-number
-Software required (With
-version)
-Download links to the software OS required
-2,4,5 R studio Version 0.99.489
-h t t p s ://w w w . r s t u d i o . c o m /p r o d u c t s /r s t u d i o
-/d o w n l o a d /
-WINDOWS 7+/Centos 6
-2,4,5 R version 3.2.2 h t t p s ://c r a n . r - p r o j e c t . o r g /b i n /w i n d o w s /b a
-s e /
-WINDOWS 7+/Centos 6
-5,6,7 Anaconda 4.2 for Python 3.5 h t t p s ://w w w . c o n t i n u u m . i o /d o w n l o a d s WINDOWS 7+/Centos 6
-8 Neo4j 3.0.6 h t t p s ://n e o 4j . c o m /d o w n l o a d / WINDOWS 7+/Centos 6
-7 Spark 2.0
-h t t p s ://s p a r k . a p a c h e . o r g /d o w n l o a d s . h t m l WINDOWS 7+/Centos 6
-9 Hadoop 2.5 -Mahout 0.12 h t t p ://h a d o o p . a p a c h e . o r g /r e l e a s e s . h t m l
-h t t p ://m a h o u t . a p a c h e . o r g /g e n e r a l /d o w n l o a d
-s . h t m l
-WINDOWS 7+/Centos 6
-7,9,8 Java 7/Java 8 h t t p ://w w w . o r a c l e . c o m /t e c h n e t w o r k /j a v a /j a
-v a s e /d o w n l o a d s /j d k 7- d o w n l o a d s - 1880260. h t m
-l
-WINDOWS 7+/Centos 6
+| Chapter number | Software required (With version) | Download links to the software | OS required |
+| -------------- |:---------------------------------:| ------------------------------|------------:|
+| 2,4,5     | R studio Version 0.99.489 | https://www.rstudio.com/products/rstudio/download/ | WINDOWS 7+/Centos 6 |
+| 2,4,5      | R version 3.2.2     |  https://cran.r-project.org/bin/windows/base/ | WINDOWS 7+/Centos 6 |
+| 5,6,7      |Anaconda 4.2 for Python 3.5   |  https://www.continuum.io/downloads | WINDOWS 7+/Centos 6 |
+|8      | Neo4j 3.0.6     | https://neo4j.com/download/ | WINDOWS 7+/Centos 6 |
+| 7    | Spark 2.0     |   https://spark.apache.org/downloads.html | WINDOWS 7+/Centos 6 |
+|9    |Hadoop 2.5 -Mahout0.12     |  http://hadoop.apache.org/releases.html#25+August%2C+2016%3A+Release+2.7.3+available http://mahout.apache.org/general/downloads.html | WINDOWS 7+/Centos 6 |
+|7,9,8     |Java 7/Java 8    |  http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html | WINDOWS 7+/Centos 6 |
+
 
 ##Related Products
 * [Building a Recommendation Engine with Scala](https://www.packtpub.com/application-development/building-recommendation-engine-scala?utm_source=github&utm_medium=repository&utm_campaign=9781785282584)
