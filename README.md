@@ -1,5 +1,5 @@
 #Building Recommendation Engines
-This is the code repository for [Building Recommendation Engines](https://www.packtpub.com/big-data-and-business-intelligence/building-recommendation-engines?utm_source=github&utm_medium=repository&utm_campaign=9781785884856), published by [Packt](www.packtpub.com). It contains all the supporting project files necessary to work through the book from start to finish.
+This is the code repository for [Building Recommendation Engines](https://www.packtpub.com/big-data-and-business-intelligence/building-recommendation-engines?utm_source=github&utm_medium=repository&utm_campaign=9781785884856), published by [Packt](https://www.packtpub.com). It contains all the supporting project files necessary to work through the book from start to finish.
 ## About the Book
 A recommendation engine (sometimes referred to as a recommender system) is a tool that lets algorithm developers predict what a user may or may not like among a list of given items. Recommender systems have become extremely common in recent years, and are applied in a variety of applications. The most popular ones are movies, music, news, books, research articles, search queries, social tags, and products in general.
 
@@ -50,5 +50,6 @@ WINDOWS 7+/Centos 6
 * [Building a Recommendation System with R](https://www.packtpub.com/big-data-and-business-intelligence/building-recommendation-system-r?utm_source=github&utm_medium=repository&utm_campaign=9781783554492)
 
 * [Machine Learning for the Web](https://www.packtpub.com/big-data-and-business-intelligence/machine-learning-web?utm_source=github&utm_medium=repository&utm_campaign=9781785886607)
+
 ###Suggestions and Feedback
 [Click here](https://docs.google.com/forms/d/e/1FAIpQLSe5qwunkGf6PUvzPirPDtuy1Du5Rlzew23UBp2S-P3wB-GcwQ/viewform) if you have any feedback or suggestions.
