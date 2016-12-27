@@ -1,0 +1,121 @@
+﻿Node Syntax:
+()
+(user)
+(u:user)
+(u:user{name:’Toby’})
+
+Relationship syntax:
+-[]->
+(user) -[f:friendof]->(user)
+(user) -[f:friendof {since: 2016}]->(user)
+
+Create Nodes:
+CREATE (john:Person {name:"JOHN"})  RETURN  john
+
+Create multiple nodes:
+CREATE (paul:Person {name:"PAUL"}) 
+CREATE (krish:Person {name:"KRISH"}) 
+RETURN  krish, paul
+
+Display results:
+MATCH(k:Person{name:'KRISH'}),(p:Person{name:'PAUL'}),(j:Person{name:'JOHN'}) RETURN k,p,j
+
+Creating relationships between nodes:
+MATCH(k:Person{name:'KRISH'}),(p:Person{name:'PAUL'}),(j:Person{name:'JOHN'}) 
+CREATE (k)-[:FRIENDOF]->(j)
+CREATE (j)-[:FRIENDOF]->(k)
+CREATE (p)-[:FRIENDOF]->(j)
+CREATE (p)-[:FRIENDOF]->(k)
+CREATE (k)-[:FRIENDOF]->(p)
+
+Display results:
+match(n:Person)-[f:FRIENDOF]->(q:Person) return f
+
+Setting properties to relations:
+MATCH (k:Person{name:'KRISH'})-[f1:FRIENDOF]-> (p:Person{name:'PAUL'}),
+(k1:Person{name:'KRISH'})<-[f2:FRIENDOF]- (p1:Person{name:'PAUL'})
+SET f1.friendsince = '2016', f2.friendsince = '2015'
+
+match(n:Person)-[f:FRIENDOF]->(q:Person) return f
+
+MATCH(k:Person{name:'KRISH'}),(p:Person{name:'PAUL'}),(j:Person{name:'JOHN'}) 
+SET k.age = '26' ,p.age='28', j.age='25',k.gender='M',p.gender='M',j.gender='M'
+
+match(n:Person)-[f:FRIENDOF]->(q:Person) return f
+
+
+Load data csv:
+LOAD CSV FROM 'file:///C: /neo4j/test.csv' AS line return line
+
+Return Keyword:
+LOAD CSV WITH HEADERS FROM 'file:///C:/ neo4j/test.csv' AS RATINGSDATA RETURN RATINGSDATA
+
+
+Recommendation engine using Neo4j
+
+Loading data, creating relationships:
+LOAD CSV WITH HEADERS FROM 'file:///C:/neo4j/test.csv' AS line MERGE (U:USER {USERID : line.UserID})
+WITH line, U
+MERGE (M:MOVIE {ITEMID : line.ItemId})
+WITH line,M,U
+MERGE (U)-[:hasRated{RATING:line.Rating}]->(M);
+
+MATCH (U:USER)-[R:hasRated]->(M:MOVIE) RETURN R
+
+Recommendation using simple co-rated movies by similar users:
+match(u1:USER)-[:hasRated]->(i1:MOVIE)<-[:hasRated]-(u2:USER)-[:hasRated]->(i2:MOVIE) 
+with u1,u2, count(i1) as cnt , collect(i1) as Shareditems,i2
+where not(u1-[:hasRated]->i2) and u1.USERID='Toby' and cnt > 2 
+return distinct i2.ITEMID as Recommendations
+
+Recommendation uusing Euclidean distance:
+MATCH (u1:USER)-[x:hasRated]-> (b:MOVIE)<-[y:hasRated]-(u2:USER)
+WITH count(b) AS CommonMovies, u1.username AS user1, u2.username AS user2, u1, u2,
+collect((toFloat(x.RATING)-toFloat(y.RATING))^2) AS ratings,
+collect(b.name) AS movies
+WITH CommonMovies, movies, u1, u2, ratings
+MERGE (u1)-[s:EUCSIM]->(u2) SET s.EUCSIM = 1-(SQRT(reduce(total=0.0, k in extract(i in ratings | i/CommonMovies) | total+k))/4)
+
+
+MATCH (p1:USER {USERID:'Toby'})-[s:EUCSIM]-(p2:USER)
+WITH p2, s.EUCSIM AS sim
+ORDER BY sim DESC
+RETURN distinct p2.USERID AS CoReviewer, sim AS similarity
+
+
+MATCH (b:USER)-[r:hasRated]->(m:MOVIE), (b)-[s:EUCSIM]-(a:USER {USERID:'Toby'})
+WHERE NOT((a)-[:hasRated]->(m))
+WITH m, s.EUCSIM AS similarity, r.RATING AS rating
+ORDER BY m.ITEMID, similarity DESC
+WITH m.ITEMID AS MOVIE, COLLECT(rating) AS ratings
+WITH MOVIE, REDUCE(s = 0, i IN ratings |toInt(s) + toInt(i))*1.0 / size(ratings) AS reco
+ORDER BY reco DESC
+RETURN MOVIE AS MOVIE, reco AS Recommendation
+
+recommendation using cosine similarity:
+
+MATCH (p1:USER)-[x:hasRated]->(m:MOVIE)<-[y:hasRated]-(p2:USER)
+WITH SUM(toFloat(x.RATING) * toFloat(y.RATING)) AS xyDotProduct,
+SQRT(REDUCE(xDot = 0.0, a IN COLLECT(toFloat(x.RATING)) | xDot +toFloat(a)^2)) AS xLength,
+SQRT(REDUCE(yDot = 0.0, b IN COLLECT(toFloat(y.RATING)) | yDot + toFloat(b)^2)) AS yLength,
+p1, p2
+MERGE (p1)-[s:SIMILARITY]-(p2)
+SET s.similarity = xyDotProduct / (xLength * yLength)
+
+MATCH (p1:USER {USERID:'Toby'})-[s:SIMILARITY]-(p2:USER)
+WITH p2, s.similarity AS sim
+ORDER BY sim DESC
+LIMIT 5
+RETURN p2.USERID AS Neighbor, sim AS Similarity
+
+MATCH (b:USER)-[r:hasRated]->(m:MOVIE), (b)-[s:SIMILARITY]-(a:USER {USERID:'Toby'})
+WHERE NOT((a)-[:hasRated]->(m))
+WITH m, s.similarity AS similarity, r.RATING AS rating
+ORDER BY m.ITEMID, similarity DESC
+WITH m.ITEMID AS MOVIE, COLLECT(rating) AS ratings
+WITH MOVIE, REDUCE(s = 0, i IN ratings |toInt(s) + toInt(i))*1.0 / size(ratings) AS reco
+ORDER BY reco DESC
+RETURN MOVIE AS MOVIE, reco AS Recommendation
+
+
+

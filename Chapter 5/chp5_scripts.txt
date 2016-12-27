@@ -1,0 +1,355 @@
+if(!"recommenderlab" %in% rownames(installed.packages())){
+install.packages("recommenderlab")}
+
+library(recommenderlab)
+
+help(package = "recommenderlab")
+
+data_package <- data(package = "recommenderlab")
+data_package$results[,c("Item","Title")]
+
+data(Jester5k)
+
+nratings(Jester5k)
+
+class(Jester5k)
+
+object.size(Jester5k)
+object.size(as(Jester5k,"matrix"))
+object.size(as(Jester5k, "matrix"))/object.size(Jester5k)
+
+methods(class = class(Jester5k))
+
+names(recommender_models)
+
+lapply(recommender_models, "[[", "description")
+
+dim(Jester5k)
+hist(getRatings(Jester5k), main="Distribution of ratings")
+
+#Recommendation engines using R
+
+library(recommenderlab)
+data("Jester5k")
+head(as(Jester5k,"matrix")[,1:10])
+set.seed(1)
+which_train <- sample(x = c(TRUE, FALSE), size = nrow(Jester5k),replace = TRUE, prob = c(0.8, 0.2))
+head(which_train)
+
+rec_data_train <- Jester5k[which_train, ]
+rec_data_test <- Jester5k[!which_train, ]
+
+dim(rec_data_train)
+dim(rec_data_test)
+#Creating user based collaborative model
+recommender_models <- recommenderRegistry$get_entries(dataType = "realRatingMatrix")
+recommender_models
+recc_model <- Recommender(data = rec_data_train, method = "UBCF")
+recc_model
+
+n_recommended <- 10
+recc_predicted <- predict(object = recc_model,newdata = rec_data_test, n = n_recommended)
+recc_predicted
+rec_list <- sapply(recc_predicted@items, function(x){
+  colnames(Jester5k)[x]
+})
+class(rec_list)
+rec_list [1:2]
+number_of_items = sort(unlist(lapply(rec_list, length)),decreasing = TRUE)
+table(number_of_items)
+
+#Analyzing the dataset
+table(rowCounts(Jester5k))
+
+model_data = Jester5k[rowCounts(Jester5k) < 80]
+dim(model_data)
+boxplot(model_data)
+
+boxplot(rowMeans(model_data [rowMeans(model_data)>=-5 & rowMeans(model_data)<= 7]))
+
+model_data = model_data [rowMeans(model_data)>=-5 & rowMeans(model_data)<= 7]
+dim(model_data)
+image(model_data, main = "Rating distribution of 100 users")
+
+#Evaluating the recommendation model using k-cross validation
+items_to_keep <- 30
+rating_threshold <- 3
+n_fold <- 5 # 5-fold 
+eval_sets <- evaluationScheme(data = model_data, method = "cross-validation",train = percentage_training, given = items_to_keep, goodRating = rating_threshold, k = n_fold)
+
+size_sets <- sapply(eval_sets@runsTrain, length)
+ size_sets
+
+model_to_evaluate <- "UBCF"
+model_parameters <- NULL
+eval_recommender <- Recommender(data = getData(eval_sets, "train"),method = model_to_evaluate, parameter = model_parameters)
+eval_recommender
+items_to_recommend <- 10
+
+#prediction
+eval_prediction <- predict(object = eval_recommender, newdata =getData(eval_sets, "known"), n = items_to_recommend, type = "ratings")
+eval_prediction
+
+eval_accuracy <- calcPredictionAccuracy(  x = eval_prediction, data = getData(eval_sets, "unknown"), byUser = TRUE)
+head(eval_accuracy)
+
+apply(eval_accuracy,2,mean)
+eval_accuracy <- calcPredictionAccuracy(  x = eval_prediction, data = getData(eval_sets, "unknown"), byUser = FALSE)
+eval_accuracy
+
+results <- evaluate(x = eval_sets, method = model_to_evaluate, n = seq(10, 100, 10))
+head(getConfusionMatrix(results)[[1]])
+
+columns_to_sum <- c("TP", "FP", "FN", "TN")
+indices_summed <- Reduce("+", getConfusionMatrix(results))[, columns_to_sum]
+head(indices_summed)
+plot(results, annotate = TRUE, main = "ROC curve")
+
+#Item based recommendation
+library(recommenderlab)
+data("Jester5k")
+model_data = Jester5k[rowCounts(Jester5k) < 80]
+model_data
+boxplot(rowMeans(model_data))
+ dim(model_data[rowMeans(model_data) < -5])
+ dim(model_data[rowMeans(model_data) > 7])
+ 
+model_data = model_data [rowMeans(model_data)>=-5 & rowMeans(model_data)<= 7]
+model_data
+
+which_train <- sample(x = c(TRUE, FALSE), size = nrow(model_data),
+ replace = TRUE, prob = c(0.8, 0.2))
+class(which_train)
+head(which_train)
+
+ model_data_train <- model_data[which_train, ]
+dim(model_data_train)
+
+ model_data_test <- model_data[!which_train, ]
+ dim(model_data_test)
+
+ 
+model_to_evaluate <- "IBCF"
+model_parameters <- list(k = 30)
+
+model_recommender <- Recommender(data = model_data_train,method = model_to_evaluate, parameter = model_parameters)
+model_recommender
+
+model_details = getModel(model_recommender)
+str(model_details)
+
+items_to_recommend <- 10
+model_prediction <- predict(object = model_recommender, newdata = model_data_test, n = items_to_recommend)
+
+model_prediction
+print(class(model_prediction))
+
+slotNames(model_prediction)
+
+model_prediction@items[[1]]
+ recc_user_1  = model_prediction@items[[1]]
+  jokes_user_1 <- model_prediction@itemLabels[recc_user_1]
+   jokes_user_1
+
+#evalutation   
+n_fold <- 4
+items_to_keep <- 15
+rating_threshold <- 3
+eval_sets <- evaluationScheme(data = model_data, method = "cross-validation",k = n_fold, given = items_to_keep, goodRating =rating_threshold)
+size_sets <- sapply(eval_sets@runsTrain, length)
+size_sets
+
+model_to_evaluate <- "IBCF"
+model_parameters <- NULL
+
+getData(eval_sets,”train”)
+
+eval_recommender <- Recommender(data = getData(eval_sets, "train"),method = model_to_evaluate, parameter = model_parameters)
+#setting the number of items to be set for recommendations
+items_to_recommend <- 10
+
+eval_prediction <- predict(object = eval_recommender, newdata = getData(eval_sets, "known"), n = items_to_recommend, type = "ratings")
+class(eval_prediction)
+
+#metrics
+eval_accuracy <- calcPredictionAccuracy(x = eval_prediction, data = getData(eval_sets, "unknown"), byUser = TRUE)
+head(eval_accuracy) 
+apply(eval_accuracy,2,mean) 
+
+eval_accuracy <- calcPredictionAccuracy(x = eval_prediction, data = getData(eval_sets, "unknown"), byUser = FALSE) 
+eval_accuracy
+
+results <- evaluate(x = eval_sets, method = model_to_evaluate, n = seq(10,100,10))
+results@results[1] 
+
+ columns_to_sum <- c("TP", "FP", "FN", "TN","precision","recall")
+indices_summed <- Reduce("+", getConfusionMatrix(results))[, columns_to_sum] 
+head(indices_summed) 
+
+plot(results, annotate = TRUE, main = "ROC curve")
+plot(results, "prec/rec", annotate = TRUE, main = "Precision-recall") 
+
+vector_k <- c(5, 10, 20, 30, 40) 
+model1 <- lapply(vector_k, function(k,l){   list(name = "IBCF", param = list(method = "cosine", k = k)) }) 
+
+names(model1) <- paste0("IBCF_cos_k_", vector_k)  
+ names(model1) 
+ 
+model2 <- lapply(vector_k, function(k,l){   list(name = "IBCF", param = list(method = "pearson", k = k))
+}) 
+
+names(model2) <- paste0("IBCF_pea_k_", vector_k)
+names(model2) 
+
+models = append(model1,model2) 
+n_recommendations <- c(1, 5, seq(10, 100, 10)) 
+
+list_results <- evaluate(x = eval_sets, method = models, n= n_recommendations) 
+
+plot(list_results, annotate = c(1,2), legend = "topleft")  title("ROC curve")
+plot(list_results, "prec/rec", annotate = 1, legend = "bottomright") title("Precision-recall")
+
+#Collaborative Filtering using Python
+http://files.grouplens.org/datasets/movielens/ml-100k.zip
+
+path = "~/udata.csv" 
+df = pd.read_csv(path, sep='\t') 
+type(df)
+
+df.head()
+ df.columns
+ df.shape
+ 
+#create a variable n_users to find the total number of unique users in the data.
+n_users = df.UserID.unique().shape[0] 
+
+#create a variable n_items to find the total number of unique movies in the data
+n_items = df['ItemId '].unique().shape[0] 
+
+#print the counts of unique users and movies
+print(str(n_users) + ' users') 
+
+print(str(n_items) + ' movies') 
+
+#create a zero value matrix of size (n_users X n_items) to store the ratings in the cell of the matrix ratings.
+ratings = np.zeros((n_users, n_items)) 
+# for each tuple in the dataframe, df extract the information of each column of the row and store into the rating matrix cell value as below
+for  row in df.itertuples():
+	ratings[row[1]-1, row[2]-1] = row[3] 
+
+type(ratings)
+ratings.shape
+ratings
+
+sparsity = float(len(ratings.nonzero()[0]))
+ sparsity /= (ratings.shape[0] * ratings.shape[1])
+ sparsity *= 100 print('Sparsity: {:4.2f}%'.format(sparsity))
+
+
+from sklearn.cross_validation import train_test_split 
+ratings_train, ratings_test = train_test_split(ratings,test_size=0.33, random_state=42)
+ratings_test.shape
+
+import numpy as np
+import sklearn
+
+dist_out = 1-sklearn.metrics.pairwise.cosine_distances(ratings_train)
+type(dist_out)
+dist_out.shape
+
+dist_out
+user_pred = dist_out.dot(ratings_train) / np.array([np.abs(dist_out).sum(axis=1)]).T
+
+from sklearn.metrics import mean_squared_error
+def get_mse(pred, actual):
+    # Ignore nonzero terms.
+    pred = pred[actual.nonzero()].flatten()
+    actual = actual[actual.nonzero()].flatten()
+    return mean_squared_error(pred, actual)
+
+get_mse(user_pred, ratings_train)
+
+get_mse(user_pred, ratings_test)
+#Find top N nearest neighbours
+
+k=5
+from sklearn.neighbors import NearestNeighbors
+
+#define  NearestNeighbors object by passing k and the similarity method as parameters.
+neigh = NearestNeighbors(k,'cosine')
+
+#fit the training data to the nearestNeighbor object
+neigh.fit(ratings_train)
+
+#calculate the top5 similar users for each user and their similarity  values, i.e. the distance values between each pair of users.
+top_k_distances,top_k_users = neigh.kneighbors(ratings_train, return_distance=True)
+
+top_k_distances.shape
+top_k_users.shape
+top_k_users[0]
+user_pred_k = np.zeros(ratings_train.shape)
+for i in range(ratings_train.shape[0]):
+    user_pred_k[i,:] =   top_k_distances[i].T.dot(ratings_train[top_k_users][i])/np.array([np.abs(top_k_distances[i].T).sum(axis=0)]).T
+
+
+user_pred_k.shape
+user_pred_k
+
+get_mse(user_pred_k, ratings_train)
+
+get_mse(user_pred_k, ratings_test)
+
+#Since we have to calculate the similarity between movies, we use movie count as k instead of user count
+k = ratings_train.shape[1]
+neigh = NearestNeighbors(k,'cosine')
+#we fit the transpose of the rating matrix to the Nearest Neighbors object
+neigh.fit(ratings_train.T)
+#calcualte the cosine similarity distance between each movie pairs
+top_k_distances,top_k_users = neigh.kneighbors(ratings_train.T, return_distance=True)
+top_k_distances.shape
+
+item__pred = ratings_train.dot(top_k_distances) / np.array([np.abs(top_k_distances).sum(axis=1)])
+item__pred.shape
+item__pred
+
+get_mse(item_pred, ratings_train)
+get_mse(item_pred,ratings_test)
+
+k = 40
+neigh2 = NearestNeighbors(k,'cosine')
+neigh2.fit(ratings_train.T)
+top_k_distances,top_k_movies = neigh2.kneighbors(ratings_train.T, return_distance=True)
+
+#rating prediction - top k user based
+
+pred = np.zeros(ratings_train.T.shape)
+for i in range(ratings_train.T.shape[0]):
+    pred[i,:] = top_k_distances[i].dot(ratings_train.T[top_k_users][i])/np.array([np.abs(top_k_distances[i]).sum(axis=0)]).T
+
+	
+get_mse(item_pred_k, ratings_train)
+get_mse(item_pred_k,ratings_test)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
