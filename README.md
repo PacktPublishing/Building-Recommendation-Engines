@@ -19,6 +19,7 @@ export CLASSPATH = $MAHOUT_HOME/lib:$CLASSPATH
 
 To get started with different implementations of recommendation engines in R, Python,
 Spark, Neo4j, Mahout we need the following software:
+
 | Chapter number | Software required (With version) | Download links to the software | OS required |
 | -------------- |:---------------------------------:| ------------------------------|------------:|
 | 2,4,5     | R studio Version 0.99.489 | https://www.rstudio.com/products/rstudio/download/ | WINDOWS 7+/Centos 6 |
